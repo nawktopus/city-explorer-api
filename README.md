@@ -1,21 +1,30 @@
 # city-explorer-api
 
 **Author**: Jordan Kwan
-**Version**: 1.0.0
+**Version**: 1.2.0
 
 ## Overview
-<!-- Provide a high level overview of what this application is and why you are building it, beyond the fact that it's an assignment for this class. (i.e. What's your problem domain?) -->
+
+Providing server for API use for movies and forecast with provided city input from front end.
 
 ## Getting Started
-<!-- What are the steps that a user must take in order to build this app on their own machine and get it running? -->
+
+1. Setup up server
+2. Test server
+3. Pull information from front end and rely back
+4. Deploy to heroku.
+5. Test for error
 
 ## Architecture
-<!-- Provide a detailed description of the application design. What technologies (languages, libraries, etc) you're using, and any other relevant design information. -->
+
+Created using React, bootstrap, API, Axios, locationIQ, weatherbit.io, moviedbAPI, netlify and heroku.
 
 ## Change Log
-<!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an example:
 
-01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource. -->
+10-24-2022 Initial Creation
+10-28-2022 Weather API
+10-30-2022 Movie API and Heroku
 
 ## Credit and Collaborations
-<!-- Give credit (and a link) to other people or resources that helped you build this application. -->
+
+Nicholas Seidel and Nerissa Leynes, Jonathan Staib
