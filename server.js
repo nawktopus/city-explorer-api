@@ -7,7 +7,6 @@ const { response } = require('express');
 
 const express = require('express');
 require('dotenv').config();
-let data = require('./data/weather.json');
 const axios = require('axios');
 const cors = require('cors');
 
@@ -25,14 +24,22 @@ app.get('/', (request, response)=> {
     response.status(200).send('Welcome to my server');
 });
 
-app.get('/weather', (request, response, next) => {
-	
-	let cityName = request.query.cityName;
+app.get('/weather', async (request, response, next) => {
+	try {
+
 	let lat = request.query.lat;
 	let lon = request.query.lon; 
-	try {
-		let cityData = data.find(city => city.city_name === cityName)
-		let groomedData = cityData.data.map(day => new Forecast(day)); // map returns an array of the date and description
+
+		// let cityData = data.find(city => city.city_name === cityName)
+		let url = `http://api.weatherbit.io/v2.0/forecast/daily?&key=${process.env.WEATHER_API_KEY}&lat=${lat}&lon=${lon}&day=7&units=F`
+
+		let getWeather = await axios.get(url);
+
+		console.log('lat', lat);
+		console.log('lon', lon);
+		console.log('weather results', getWeather.data);
+
+	let groomedData = getWeather.data.data.map(day => {return new Forecast(day)}); // map returns an array of the date and description
 	    response.status(200).send(groomedData);
 	} catch(error) {
 	next(error);
@@ -41,13 +48,41 @@ app.get('/weather', (request, response, next) => {
 });
 
 class Forecast{
-	constructor(dayObj){
+	constructor(weatherData){
 
-	this.date= dayObj.datetime;
-	this.description= dayObj.weather.description;
+	this.datetime= weatherData.datetime;
+	this.description= weatherData.weather.description;
 	}
 }
 
+app.get('/movies', async (request, response, next) => {
+
+	try{
+
+	let city = request.query.city_name;
+
+	let url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&language=en-US&query=${city}&page=1&include_adult=false`
+
+	let movieData = await axios.get(url);
+
+	let getMovie = movieData.data.results.map(movie => {
+		return new Movie(movie);
+	});
+
+	response.status(200).send(getMovie);
+
+	} catch(error) {
+		next(error);
+	}
+
+});
+
+class Movie{
+	constructor(movies) {
+		this.title = movies.title;
+		this.overview = movies.overview;
+	}
+}
 
 //catchall should live at bottom of endpoint
 app.get('*', (request,response)=>{
