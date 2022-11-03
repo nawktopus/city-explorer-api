@@ -1,16 +1,14 @@
 'use strict';
 
 console.log('first server');
-
-const { response } = require('express');
 // **requires**
 
-const express = require('express');
 require('dotenv').config();
-const axios = require('axios');
+const { response } = require('express');
+const express = require('express');
 const cors = require('cors');
-const getWeather = require('./modules/weather');
-const getMovie = require('./modules/movies');
+const weather = require('./modules/weather.js');
+const movies = require('./modules/movies.js');
 
 //once express is in/ app ===server
 // **endpoints**
@@ -19,25 +17,31 @@ const app = express();
 app.use(cors());
 //define port
 const PORT = process.env.PORT || 3002;
-//3002, something wrong with .env or didn't bring in dotenv library
 
-app.get('/', (request, response)=> {
-    console.log('This is showing up in my terminal!');
-    response.status(200).send('Welcome to my server');
-});
+app.get('/weather', weatherHandler);
+app.get('/movies', movieHandler);
 
-app.get('/weather', getWeather);
+function weatherHandler (request, response) {
+  const { lat, lon } = request.query;
+  weather(lat, lon)
 
-app.get('/movies', getMovie);
+  .then(summaries => response.send(summaries))
+  .catch((error) => {
+    console.error(error);
+    response.status(200).send('Sorry. Something went wrong!')
+  });
+}  
 
-//catchall should live at bottom of endpoint
-app.get('*', (request,response)=>{
-    response.status(404).send('This route does not exist');
-});
-// **Error handling**
-app.use((error, request, response, next) => {
-    response.status(500).send(error.message);
-});
+function movieHandler(request, response) {
+    const {city_name} = request.query;
+    console.log(city_name);
+    movies(city_name)
+      .then(summaries => response.send(summaries))
+      .catch((error) => {
+        console.error(error);
+        response.status(200).send('Sorry, something went wrong on movies!');
+      });
+    }
 
 // **server start** 
 app.listen(PORT, ()=> console.log(`We are up and running on port ${PORT}`));
