@@ -1,35 +1,44 @@
 'use strict';
 
+let cache = require('./cache.js');
 const axios = require('axios');
 
-async function getWeather(request, response, next) {
-    try{
-        let lat = request.query.lat;
-        let lon = request.query.lon; 
+function getWeatherData(latitude, longitude) {
+    let lat = latitude;
+    let lon = longitude;
+    const key = 'weather-' + lat + lon;
+    const url = `http://api.weatherbit.io/v2.0/forecast/daily/?key=${process.env.WEATHER_API_KEY}&lang=en&lat=${lat}&lon=${lon}&days=5`;
+  
+    if (cache[key] && (Date.now() - cache[key].timestamp < 50000)) {
+      console.log('Cache hit');
+    } else {
+      console.log('Cache miss');
+      cache[key] = {};
+      cache[key].timestamp = Date.now();
+      cache[key].data = axios.get(url)
+      .then(response => parseWeather(response.data));
+    }
     
-            // let cityData = data.find(city => city.city_name === cityName)
-            let url = `http://api.weatherbit.io/v2.0/forecast/daily?&key=${process.env.WEATHER_API_KEY}&lat=${lat}&lon=${lon}&day=7&units=F`
-    
-            let getWeather = await axios.get(url);
-    
-            console.log('lat', lat);
-            console.log('lon', lon);
-            console.log('weather results', getWeather.data);
-    
-        let groomedData = getWeather.data.data.map(day => {return new Forecast(day)}); // map returns an array of the date and description
-            response.status(200).send(groomedData);
-        } catch(error) {
-        next(error);
-        }
-        
-}
+    return cache[key].data;
+  }
+  function parseWeather(weatherData) {
+    try {
+      const weatherSummaries = weatherData.data.map(day => {
+        return new Weather(day);
+      });
+      return Promise.resolve(weatherSummaries);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+  
+  class Weather {
+    constructor(day) {
+      this.description = day.weather.description;
+      this.datetime = day.datetime;
+      this.timestamp = Date.now();
+    }
+  }
 
-class Forecast{
-	constructor(weatherData){
 
-	this.datetime= weatherData.datetime;
-	this.description= weatherData.weather.description;
-	}
-}
-
-module.exports=getWeather;
+module.exports=getWeatherData;
